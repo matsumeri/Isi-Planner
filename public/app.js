@@ -58,6 +58,7 @@ let activeFilter    = 'all';
 let editingExpense  = null;   // ID del gasto en edición
 let currentApiExpId = null;   // ID del gasto cuya API se está consultando
 let saveTimer       = null;
+const IS_GITHUB_PAGES = window.location.hostname.endsWith('github.io');
 
 // ── Inicialización ────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -69,7 +70,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function registerSW() {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    const swPath = window.location.pathname.includes('/public/') ? './sw.js' : './public/sw.js';
+    navigator.serviceWorker.register(swPath).catch(() => {});
   }
 }
 
@@ -89,6 +91,18 @@ function lsLoad(year, month) {
 
 // ── Carga / guardado de datos ─────────────────────────────────────────────────
 async function loadMonth(year, month) {
+  if (IS_GITHUB_PAGES) {
+    const cached = lsLoad(year, month);
+    if (cached && Array.isArray(cached.expenses) && cached.expenses.length > 0) {
+      state = { ...state, ...cached, year, month };
+      showToast('Modo GitHub Pages — datos locales', 'info');
+      return;
+    }
+    state = { ...state, year, month, sueldo: 0, expenses: DEFAULT_EXPENSES.map(e => ({ ...e })), notes: '' };
+    showToast('Sin conexión — plantilla de gastos cargada', 'info');
+    return;
+  }
+
   // 1. Intentar desde servidor
   try {
     const res  = await fetch(`/api/month/${year}/${month}`);
@@ -196,6 +210,10 @@ function calcTotalGastos() {
 function renderExpenses() {
   const list = document.getElementById('expenses-list');
   list.innerHTML = '';
+
+  if (!Array.isArray(state.expenses) || state.expenses.length === 0) {
+    state.expenses = DEFAULT_EXPENSES.map(e => ({ ...e }));
+  }
 
   const filtered = activeFilter === 'all'
     ? state.expenses
