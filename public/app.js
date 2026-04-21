@@ -91,7 +91,7 @@ function setupInstallPrompt() {
 
 function registerSW() {
   if ('serviceWorker' in navigator) {
-    const swPath = window.location.pathname.includes('/public/') ? './sw.js' : './public/sw.js';
+    const swPath = window.location.pathname.includes('/public/') ? '../sw.js' : './sw.js';
     navigator.serviceWorker.register(swPath).catch(() => {});
   }
 }
