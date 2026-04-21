@@ -59,6 +59,7 @@ let editingExpense  = null;   // ID del gasto en edición
 let currentApiExpId = null;   // ID del gasto cuya API se está consultando
 let saveTimer       = null;
 const IS_GITHUB_PAGES = window.location.hostname.endsWith('github.io');
+let deferredInstallPrompt = null;
 
 async function apiFetch(path, options) {
   if (IS_GITHUB_PAGES) {
@@ -69,11 +70,24 @@ async function apiFetch(path, options) {
 
 // ── Inicialización ────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+  setupInstallPrompt();
   registerSW();
   bindStaticEvents();
   await loadMonth(state.year, state.month);
   renderAll();
 });
+
+function setupInstallPrompt() {
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    showToast('ISI Planner instalada en tu pantalla de inicio', 'success');
+  });
+}
 
 function registerSW() {
   if ('serviceWorker' in navigator) {
@@ -636,8 +650,37 @@ async function copyPreviousMonth() {
   }
 }
 
-// ── Exportar / Imprimir ───────────────────────────────────────────────────────
-function exportPrint() {
+// ── Instalar app / Exportar ──────────────────────────────────────────────────
+async function handleInstallOrExport() {
+  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+    showToast('La app ya está instalada', 'info');
+    return;
+  }
+
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    if (choice && choice.outcome === 'accepted') {
+      showToast('Instalando ISI Planner...', 'success');
+    }
+    return;
+  }
+
+  const ua = navigator.userAgent || '';
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+
+  if (isIOS) {
+    showToast('En iPhone: Compartir -> Agregar a pantalla de inicio', 'info');
+    return;
+  }
+
+  if (isMobile) {
+    showToast('En Android: menu del navegador -> Instalar app', 'info');
+    return;
+  }
+
   window.print();
 }
 
@@ -721,7 +764,7 @@ function bindStaticEvents() {
   // Acciones del header
   document.getElementById('history-btn').addEventListener('click', openHistory);
   document.getElementById('copy-prev-btn').addEventListener('click', copyPreviousMonth);
-  document.getElementById('export-btn').addEventListener('click', exportPrint);
+  document.getElementById('export-btn').addEventListener('click', handleInstallOrExport);
   document.getElementById('theme-btn').addEventListener('click', toggleTheme);
 
   // Sueldo
