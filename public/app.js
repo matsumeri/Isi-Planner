@@ -60,6 +60,13 @@ let currentApiExpId = null;   // ID del gasto cuya API se está consultando
 let saveTimer       = null;
 const IS_GITHUB_PAGES = window.location.hostname.endsWith('github.io');
 
+async function apiFetch(path, options) {
+  if (IS_GITHUB_PAGES) {
+    throw new Error('API no disponible en GitHub Pages');
+  }
+  return fetch(path, options);
+}
+
 // ── Inicialización ────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   registerSW();
@@ -105,7 +112,7 @@ async function loadMonth(year, month) {
 
   // 1. Intentar desde servidor
   try {
-    const res  = await fetch(`/api/month/${year}/${month}`);
+    const res  = await apiFetch(`/api/month/${year}/${month}`);
     if (res.ok) {
       const data = await res.json();
       // Si el servidor devuelve expenses válidas, usarlas
@@ -139,7 +146,7 @@ async function saveMonth() {
   lsSave(state.year, state.month, { ...payload, year: state.year, month: state.month });
   // Luego intentar sincronizar con servidor
   try {
-    await fetch(`/api/month/${state.year}/${state.month}`, {
+    await apiFetch(`/api/month/${state.year}/${state.month}`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify(payload),
@@ -436,7 +443,7 @@ async function fetchLuzDeuda() {
   errEl.classList.add('hidden');
 
   try {
-    const res  = await fetch('/api/luz-deuda', {
+    const res  = await apiFetch('/api/luz-deuda', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ cta_cto: ctaCto }),
@@ -482,7 +489,7 @@ async function fetchAguaDeuda() {
   errEl.classList.add('hidden');
 
   try {
-    const res  = await fetch('/api/agua-deuda', {
+    const res  = await apiFetch('/api/agua-deuda', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ cliente_id: clienteId }),
@@ -577,7 +584,7 @@ async function openHistory() {
   openModal('history-modal');
 
   try {
-    const res   = await fetch('/api/months');
+    const res   = await apiFetch('/api/months');
     const months= await res.json();
 
     if (months.length === 0) {
@@ -618,7 +625,7 @@ async function openHistory() {
 async function copyPreviousMonth() {
   if (!confirm('¿Copiar la estructura de gastos del mes anterior?')) return;
   try {
-    const res  = await fetch(`/api/month/${state.year}/${state.month}/copy-previous`, { method: 'POST' });
+    const res  = await apiFetch(`/api/month/${state.year}/${state.month}/copy-previous`, { method: 'POST' });
     const data = await res.json();
     if (data.error) { showToast(data.error, 'error'); return; }
     state = { ...state, ...data };
