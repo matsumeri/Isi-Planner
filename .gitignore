@@ -1,0 +1,6 @@
+.env
+node_modules/
+planner-data.json
+planner.db
+*.db
+npm-debug.log*

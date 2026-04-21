@@ -1,0 +1,21 @@
+{
+  "name": "isi-planner",
+  "version": "1.0.0",
+  "description": "Planificador de gastos mensuales - ISI Planner",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.17.2",
+    "dotenv": "^17.4.2",
+    "express": "^4.22.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

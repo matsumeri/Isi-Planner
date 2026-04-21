@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#6366f1" id="meta-theme" />
+  <meta name="description" content="Planificador de gastos mensuales personal" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ISI Planner" />
+  <title>ISI Planner</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body class="dark">
+
+  <!-- ===== APP ROOT ===== -->
+  <div id="app">
+
+    <!-- HEADER -->
+    <header class="header" id="main-header">
+      <div class="header-brand">
+        <span class="brand-icon">💰</span>
+        <span class="brand-name">ISI Planner</span>
+      </div>
+
+      <nav class="month-nav">
+        <button class="nav-btn" id="prev-month" aria-label="Mes anterior">&#8249;</button>
+        <button class="month-label-btn" id="month-label-btn">Abril 2026</button>
+        <button class="nav-btn" id="next-month" aria-label="Mes siguiente">&#8250;</button>
+      </nav>
+
+      <div class="header-actions">
+        <button class="icon-btn" id="history-btn" title="Historial de meses">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M8 7h8M8 12h8M8 17h5"/></svg>
+        </button>
+        <button class="icon-btn" id="copy-prev-btn" title="Copiar gastos del mes anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </button>
+        <button class="icon-btn" id="export-btn" title="Exportar / Imprimir">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17V3M5 10l7 7 7-7"/><path d="M5 21h14"/></svg>
+        </button>
+        <button class="icon-btn" id="theme-btn" title="Cambiar tema">
+          <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- SUMMARY CARDS -->
+    <section class="summary-section">
+      <div class="summary-card income-card" id="sueldo-card">
+        <div class="card-icon">💵</div>
+        <div class="card-info">
+          <div class="card-label">Sueldo</div>
+          <div class="card-value editable-value" id="sueldo-display" data-field="sueldo">$0</div>
+        </div>
+        <button class="edit-mini-btn" id="edit-sueldo-btn" title="Editar sueldo">✏️</button>
+      </div>
+
+      <div class="summary-card expense-card">
+        <div class="card-icon">📤</div>
+        <div class="card-info">
+          <div class="card-label">Gastos</div>
+          <div class="card-value" id="total-gastos">$0</div>
+        </div>
+        <div class="card-percent" id="gastos-percent">0%</div>
+      </div>
+
+      <div class="summary-card balance-card">
+        <div class="card-icon">✅</div>
+        <div class="card-info">
+          <div class="card-label">Disponible</div>
+          <div class="card-value" id="total-disponible">$0</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROGRESS BAR -->
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-labels">
+        <span id="progress-text">0% gastado</span>
+        <span id="progress-remaining"></span>
+      </div>
+    </div>
+
+    <!-- EXPENSES SECTION -->
+    <section class="expenses-section">
+      <div class="expenses-header">
+        <h2 class="section-title">Gastos del mes</h2>
+        <div class="expenses-actions">
+          <button class="btn btn-primary" id="add-expense-btn">
+            <span>+</span> Agregar gasto
+          </button>
+        </div>
+      </div>
+
+      <!-- Category filters -->
+      <div class="category-filters" id="category-filters">
+        <button class="filter-chip active" data-cat="all">Todos</button>
+        <button class="filter-chip" data-cat="vivienda">🏠 Vivienda</button>
+        <button class="filter-chip" data-cat="servicios">⚡ Servicios</button>
+        <button class="filter-chip" data-cat="credito">💳 Crédito</button>
+        <button class="filter-chip" data-cat="telefonia">📱 Telefonía</button>
+        <button class="filter-chip" data-cat="familia">👨‍👩‍👧 Familia</button>
+        <button class="filter-chip" data-cat="compras">🛍️ Compras</button>
+        <button class="filter-chip" data-cat="general">💰 General</button>
+      </div>
+
+      <!-- Expenses list -->
+      <div id="expenses-list" class="expenses-list">
+        <!-- Generado por JS -->
+      </div>
+    </section>
+
+    <!-- NOTES SECTION -->
+    <section class="notes-section">
+      <label class="section-title" for="notes-input">Notas del mes</label>
+      <textarea id="notes-input" class="notes-textarea" placeholder="Apuntes, recordatorios..."></textarea>
+    </section>
+
+  </div><!-- /#app -->
+
+  <!-- ===== MODALS ===== -->
+
+  <!-- Modal: Editar Sueldo -->
+  <div class="modal-overlay hidden" id="sueldo-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>💵 Editar Sueldo</h3>
+        <button class="modal-close" data-modal="sueldo-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label">Monto (CLP)</label>
+        <input type="text" id="sueldo-input" class="form-input clp-input" placeholder="1.800.000" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="sueldo-modal">Cancelar</button>
+        <button class="btn btn-primary" id="save-sueldo-btn">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Agregar / Editar Gasto -->
+  <div class="modal-overlay hidden" id="expense-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="expense-modal-title">➕ Agregar Gasto</h3>
+        <button class="modal-close" data-modal="expense-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Nombre</label>
+          <input type="text" id="expense-name" class="form-input" placeholder="Nombre del gasto" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ícono</label>
+          <div class="icon-picker" id="icon-picker">
+            <span class="icon-opt selected" data-icon="💰">💰</span>
+            <span class="icon-opt" data-icon="🏠">🏠</span>
+            <span class="icon-opt" data-icon="⚡">⚡</span>
+            <span class="icon-opt" data-icon="💧">💧</span>
+            <span class="icon-opt" data-icon="💳">💳</span>
+            <span class="icon-opt" data-icon="📱">📱</span>
+            <span class="icon-opt" data-icon="📡">📡</span>
+            <span class="icon-opt" data-icon="👦">👦</span>
+            <span class="icon-opt" data-icon="👧">👧</span>
+            <span class="icon-opt" data-icon="👩">👩</span>
+            <span class="icon-opt" data-icon="👨‍👩‍👧">👨‍👩‍👧</span>
+            <span class="icon-opt" data-icon="🛍️">🛍️</span>
+            <span class="icon-opt" data-icon="🏦">🏦</span>
+            <span class="icon-opt" data-icon="🚗">🚗</span>
+            <span class="icon-opt" data-icon="🍔">🍔</span>
+            <span class="icon-opt" data-icon="🎓">🎓</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Categoría</label>
+          <select id="expense-category" class="form-select">
+            <option value="vivienda">🏠 Vivienda</option>
+            <option value="servicios">⚡ Servicios</option>
+            <option value="credito">💳 Crédito</option>
+            <option value="telefonia">📱 Telefonía</option>
+            <option value="familia">👨‍👩‍👧 Familia</option>
+            <option value="compras">🛍️ Compras</option>
+            <option value="general" selected>💰 General</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Monto (CLP)</label>
+          <input type="text" id="expense-amount" class="form-input clp-input" placeholder="0" />
+        </div>
+        <div class="form-group" id="extra-fields-group" style="display:none">
+          <label class="form-label">Saldo anterior (CLP)</label>
+          <input type="text" id="expense-saldo-ant" class="form-input clp-input" placeholder="0" />
+          <label class="form-label" style="margin-top:0.5rem">Saldo ante anterior (CLP)</label>
+          <input type="text" id="expense-saldo-ant-ant" class="form-input clp-input" placeholder="0" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notas</label>
+          <input type="text" id="expense-notes" class="form-input" placeholder="Observaciones..." />
+        </div>
+        <div class="form-check">
+          <input type="checkbox" id="expense-paid" class="form-checkbox" />
+          <label for="expense-paid">Marcado como pagado</label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" id="expense-extra-fields" class="form-checkbox" />
+          <label for="expense-extra-fields">Tiene saldos anteriores (ej. Luz)</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger" id="delete-expense-btn" style="margin-right:auto; display:none">🗑️ Eliminar</button>
+        <button class="btn btn-secondary" data-modal="expense-modal">Cancelar</button>
+        <button class="btn btn-primary" id="save-expense-btn">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Consultar deuda Luz (CGE) -->
+  <div class="modal-overlay hidden" id="luz-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>⚡ Deuda CGE – Luz</h3>
+        <button class="modal-close" data-modal="luz-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">N° Cuenta Contrato</label>
+          <input type="text" id="luz-cta-cto" class="form-input" value="2249414" />
+        </div>
+        <button class="btn btn-primary btn-block" id="fetch-luz-btn">
+          🔍 Consultar deuda en CGE
+        </button>
+
+        <div id="luz-result" class="api-result hidden">
+          <div class="result-card" id="luz-result-card">
+            <!-- Contenido dinámico -->
+          </div>
+          <div class="raw-response-toggle">
+            <button class="link-btn" id="toggle-luz-raw">Ver respuesta completa</button>
+          </div>
+          <pre id="luz-raw-json" class="raw-json hidden"></pre>
+        </div>
+
+        <div id="luz-error" class="api-error hidden"></div>
+
+        <div class="form-group" style="margin-top:1.25rem">
+          <label class="form-label">Monto a registrar (CLP)</label>
+          <input type="text" id="luz-monto-manual" class="form-input clp-input" placeholder="0" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="luz-modal">Cancelar</button>
+        <button class="btn btn-primary" id="apply-luz-btn">Aplicar monto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Consultar deuda Agua (Aguas Andinas) -->
+  <div class="modal-overlay hidden" id="agua-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>💧 Deuda Aguas Andinas</h3>
+        <button class="modal-close" data-modal="agua-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">N° de Cliente</label>
+          <input type="text" id="agua-cliente-id" class="form-input" value="96697-5" />
+        </div>
+        <button class="btn btn-primary btn-block" id="fetch-agua-btn">
+          🔍 Consultar deuda
+        </button>
+
+        <div id="agua-result" class="api-result hidden">
+          <div class="result-card" id="agua-result-card"></div>
+        </div>
+
+        <div id="agua-error" class="api-error hidden">
+          <p></p>
+          <a href="https://clientes.aguasandinas.cl" target="_blank" rel="noopener" class="portal-link">
+            🌐 Ir al portal de Aguas Andinas
+          </a>
+        </div>
+
+        <div class="form-group" style="margin-top:1.25rem">
+          <label class="form-label">Monto a registrar (CLP)</label>
+          <input type="text" id="agua-monto-manual" class="form-input clp-input" placeholder="0" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-modal="agua-modal">Cancelar</button>
+        <button class="btn btn-primary" id="apply-agua-btn">Aplicar monto</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Historial -->
+  <div class="modal-overlay hidden" id="history-modal">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h3>📋 Historial de Meses</h3>
+        <button class="modal-close" data-modal="history-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="history-list" class="history-list">
+          <!-- Generado por JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
