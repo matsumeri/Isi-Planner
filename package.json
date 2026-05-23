@@ -10,7 +10,7 @@
   "dependencies": {
     "@libsql/client": "^0.17.2",
     "dotenv": "^17.4.2",
-    "express": "^4.22.1"
+    "express": "^4.22.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.3",
